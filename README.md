@@ -5,6 +5,14 @@
 
 ---
 
+## 🚀 Live Deployment
+
+- **GitHub Repository:** https://github.com/MilanPatel2003/workforce-pulse
+- **Frontend (Live):** https://workforce-pulse.vercel.app/
+- **Backend (API):** https://workforce-pulse.onrender.com
+
+---
+
 ## Files & Assumptions
 
 ### activity_logs.csv
