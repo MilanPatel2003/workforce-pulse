@@ -21,6 +21,20 @@ export default function EmployeeDrilldown() {
     return emps
   }, [metrics, filters, filteredRows])
 
+  const filteredTopTaskByEmployee = useMemo(() => {
+    const taskTotals = {}
+    for (const row of filteredRows) {
+      if (!taskTotals[row.employee_id]) taskTotals[row.employee_id] = {}
+      taskTotals[row.employee_id][row.task_category] = (taskTotals[row.employee_id][row.task_category] || 0) + row.duration_minutes
+    }
+    return Object.fromEntries(
+      Object.entries(taskTotals).map(([id, tasks]) => {
+        const [topTask] = Object.entries(tasks).sort((a, b) => b[1] - a[1])
+        return [id, topTask ? topTask[0] : '—']
+      })
+    )
+  }, [filteredRows])
+
   const emp = selected ? employees.find(e => e.id === selected) : null
   const roleAvg = emp ? (metrics?.role_avg_rep_pct?.[emp.role] || 0) : 0
 
@@ -58,7 +72,9 @@ export default function EmployeeDrilldown() {
                       {e.rep_pct.toFixed(0)}%
                     </span>
                   </td>
-                  <td style={{ padding: '8px', color: 'var(--muted)', fontSize: 11 }}>{e.top_tasks[0]?.name || '—'}</td>
+                  <td style={{ padding: '8px', color: 'var(--muted)', fontSize: 11 }}>
+                    {filteredTopTaskByEmployee[e.id] || e.top_tasks[0]?.name || '—'}
+                  </td>
                   <td style={{ padding: '8px' }}>
                     <span style={{
                       fontSize: 10, padding: '2px 6px', borderRadius: 10,
@@ -121,6 +137,11 @@ export default function EmployeeDrilldown() {
           </div>
         )}
       </div>
+      {filters.taskCategory && (
+        <p style={{ marginTop: 12, fontSize: 11, color: 'var(--muted)' }}>
+          Showing employees with current filter activity. <strong>Top Task</strong> is computed from the filtered rows.
+        </p>
+      )}
     </div>
   )
 }
