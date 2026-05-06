@@ -13,6 +13,113 @@
 
 ---
 
+## 📊 Features & Dashboard Components
+
+### Headline Numbers
+**What:** Two key metrics at the top of the dashboard.
+- **Recoverable Hours/Month:** Total hours that could be automated each month (based on repetitive tasks × 70% automation factor).
+- **Cost Recoverable/Month:** Monetary value of those hours based on employee salaries in INR.
+
+**Why it matters:** These are the primary business drivers. A COO uses these numbers to justify automation investment and measure potential ROI.
+
+---
+
+### Time-Sink Breakdown
+**What:** Visual breakdown of where time is being spent. Toggle between three views:
+- **By Task Category:** Email Triage, Reconciliation, Data Entry, etc.
+- **By App:** Salesforce, Gmail, Slack, etc.
+- **By Department:** Sales, Finance, HR, Operations, etc.
+
+**Why it matters:** Identifies which tasks, tools, or departments consume the most time. Helps prioritize where automation efforts will have the biggest impact.
+
+---
+
+### Week-over-Week Trend
+**What:** Line chart showing how the top 5 task categories changed over the 4-week dataset period.
+
+**Why it matters:** Reveals whether repetitive task volume is growing, shrinking, or stable. A rising trend suggests increasing operational drag; a falling trend shows positive progress.
+
+---
+
+### Automation Priority Ranking
+**What:** Ranked table of task categories, sorted by an **automation score** that combines:
+- Volume (35% weight): How many total hours.
+- Repetitiveness (30% weight): What % is marked as repetitive.
+- Employee Concentration (20% weight): How many people do it (easier to automate if many people do it).
+- Cost Impact (15% weight): How much it costs in employee hours.
+
+**Why it matters:** Not all repetitive tasks are equal. Email Triage may be highly repetitive but spread across 1 person; Reconciliation might be moderate repetition but done by 10 people. This score balances all factors to show the **single highest-ROI automation candidate**.
+
+**Action:** Click any row to filter the Employee Drilldown to see which employees are involved in that task.
+
+---
+
+### Employee Drilldown
+**What:** A list of employees matching your current filters. Click an employee to see:
+- **Repetitive % vs Role Average:** A comparison bar showing if they're above or below their peer group.
+- **Top Tasks:** Bar chart of their most time-consuming tasks (filtered to the current filter context).
+- **Weekly Activity Trend:** Line chart showing their total and repetitive hours week by week.
+
+**Why it matters:** Moves from "what to automate" to "who is affected and how much." A COO can identify which employees would benefit most from automation and plan training or role transitions.
+
+---
+
+### Anomaly Callout
+**What:** Highlights at least one governance or data quality risk, such as:
+- Terminated employee with recent activity (E010): Security risk — access not revoked.
+- Ghost employee (E013): Activity logged for an unknown person.
+- Unusually high repetitive % for an individual: Potential burnout or role misalignment.
+
+**Why it matters:** Surfaces hidden risks that require immediate attention, not just automation opportunities.
+
+---
+
+### Ingestion Report
+**What:** Transparency into data cleaning. Shows:
+- Rows dropped (and why: invalid timestamp, invalid duration, unknown employee).
+- Employees in activity logs but not in HRMS (ghost employees).
+- Employees in HRMS but with no activity.
+- Duplicates resolved.
+
+**Why it matters:** Builds trust. A COO can see exactly what data was used and how edge cases were handled.
+
+---
+
+### Theme Toggle (Light/Dark Mode)
+**What:** Switch between dark and light color schemes.
+
+**Why it matters:** Accessibility and user preference. Works across all components and the export PDF.
+
+---
+
+### AI Assistant
+**What:** Conversational interface grounded in your normalized dataset. Ask questions like:
+- "What's the single highest-ROI automation we should ship next?"
+- "Who in Finance is spending the most time on email triage, and how much does it cost?"
+- "Show me everyone whose repetitive-task share went up week-over-week."
+
+**Why it matters:** Natural language queries let non-technical stakeholders extract insights without navigating charts. The AI cites the underlying data and remembers multi-turn conversations.
+
+---
+
+### Export PDF
+**What:** One-page executive summary containing:
+- Current filter state and date range.
+- Both headline numbers (recoverable hours and cost).
+- Top-5 automation opportunities ranked by score.
+
+**Why it matters:** A COO can forward the PDF to stakeholders or include it in board presentations without additional work.
+
+---
+
+## Cross-Filters
+**Department Filter** (sidebar): Click a department to narrow all charts to that team.  
+**Task Category Filter** (click a row in Automation Ranking): Narrows the Employee Drilldown to employees involved in that task.
+
+Both filters stack, so you can filter by department AND task category together to drill down deeply.
+
+---
+
 ## Files & Assumptions
 
 ### activity_logs.csv
