@@ -48,6 +48,7 @@ export default function ChatPanel({ onClose }) {
         <div>
           <p style={{ fontWeight: 600, fontSize: 13, color: 'var(--text)' }}>✦ AI Assistant</p>
           <p style={{ fontSize: 10, color: 'var(--muted)' }}>Grounded in your normalized dataset · Gemini 2.5 Flash</p>
+          <p style={{ fontSize: 9, color: 'var(--muted)', marginTop: 2 }}>AI can be down sometimes. Click retry. It won't work if tokens are used, but retry.</p>
         </div>
         <button onClick={onClose} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 18, lineHeight: 1 }}>×</button>
       </div>

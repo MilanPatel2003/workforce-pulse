@@ -2,8 +2,24 @@ import React from 'react'
 import { useStore } from '../../store/useStore'
 
 export default function DepartmentFilter() {
-  const { metrics, filters, setFilter } = useStore()
+  const { metrics, filters, setFilter, theme } = useStore()
   const depts = metrics?.by_department?.map(d => d.name) || []
+
+  const pillStyle = {
+    background: 'transparent',
+    border: '1px solid var(--border)',
+    color: 'var(--muted)',
+    borderRadius: 5,
+    padding: '6px 10px',
+    cursor: 'pointer',
+    fontSize: 12,
+    width: '100%',
+  }
+  const pillActive = {
+    background: theme === 'light' ? 'rgba(0,123,255,0.1)' : 'rgba(79,142,247,0.15)',
+    borderColor: theme === 'light' ? '#007bff' : '#4f8ef7',
+    color: theme === 'light' ? '#007bff' : '#4f8ef7',
+  }
 
   return (
     <div>
@@ -22,20 +38,4 @@ export default function DepartmentFilter() {
       </div>
     </div>
   )
-}
-
-const pillStyle = {
-  background: 'transparent',
-  border: '1px solid var(--border)',
-  color: 'var(--muted)',
-  borderRadius: 5,
-  padding: '6px 10px',
-  cursor: 'pointer',
-  fontSize: 12,
-  width: '100%',
-}
-const pillActive = {
-  background: 'rgba(79,142,247,0.15)',
-  borderColor: '#4f8ef7',
-  color: '#4f8ef7',
 }
