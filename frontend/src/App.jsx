@@ -15,9 +15,13 @@ import ExportButton from './components/Export/ExportButton'
 const API_URL = import.meta.env.VITE_API_URL || ''
 
 export default function App() {
-  const { setData, setMetrics, setLoading, setError, loading, error, filters, clearFilters } = useStore()
+  const { setData, setMetrics, setLoading, setError, loading, error, filters, clearFilters, theme, setTheme } = useStore()
   const [chatOpen, setChatOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('light', theme === 'light')
+  }, [theme])
 
   useEffect(() => {
     setLoading(true)
@@ -97,6 +101,10 @@ export default function App() {
           </div>
           <div className="topbar-actions" style={{ display: 'flex', gap: 10 }}>
             <ExportButton />
+            <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+              style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)', borderRadius: 6, padding: '7px 14px', cursor: 'pointer', fontSize: 12, fontWeight: 500 }}>
+              {theme === 'dark' ? '☀ Light' : '🌙 Dark'}
+            </button>
             <button onClick={() => setChatOpen(!chatOpen)}
               style={{ background: chatOpen ? '#4f8ef7' : 'var(--surface)', border: '1px solid var(--border)', color: chatOpen ? '#fff' : 'var(--text)', borderRadius: 6, padding: '7px 14px', cursor: 'pointer', fontSize: 12, fontWeight: 500 }}>
               {chatOpen ? '× Close AI' : '✦ AI Assistant'}

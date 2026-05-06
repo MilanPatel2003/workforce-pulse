@@ -14,6 +14,20 @@
   --font-body: 'DM Sans', sans-serif;
 }
 
+.light {
+  --bg: #ffffff;
+  --surface: #f8f9fa;
+  --surface2: #e9ecef;
+  --border: #dee2e6;
+  --accent: #007bff;
+  --accent2: #6f42c1;
+  --green: #28a745;
+  --amber: #ffc107;
+  --red: #dc3545;
+  --text: #212529;
+  --muted: #6c757d;
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {

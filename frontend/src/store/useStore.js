@@ -6,6 +6,7 @@ export const useStore = create((set) => ({
   loading: true,
   error: null,
   filters: { department: null, taskCategory: null },
+  theme: localStorage.getItem('theme') || 'dark',
 
   setData: (data) => set({ data }),
   setMetrics: (metrics) => set({ metrics }),
@@ -14,4 +15,8 @@ export const useStore = create((set) => ({
   setFilter: (key, val) =>
     set((s) => ({ filters: { ...s.filters, [key]: s.filters[key] === val ? null : val } })),
   clearFilters: () => set({ filters: { department: null, taskCategory: null } }),
+  setTheme: (theme) => {
+    localStorage.setItem('theme', theme)
+    set({ theme })
+  },
 }))

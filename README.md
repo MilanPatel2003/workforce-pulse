@@ -94,7 +94,7 @@ Both use shared Zustand state. Every component reads from `useFilteredData()` ho
 - **Database:** In-memory is sufficient and faster for 533 rows. Adds no latency.
 - **Authentication:** Single-tenant COO tool. Not in scope.
 - **Real-time refresh:** Dataset is static for this period.
-- **Dark/light toggle:** Committed to one polished dark theme rather than two mediocre ones.
+- **Dark/light toggle:** Committed to one polished dark theme rather than two mediocre ones. → **Added back:** Theme toggle with light/dark modes, persisted in localStorage, export respects theme.
 - **Streaming AI responses:** Gemini 2.5 Flash is fast enough; streaming would add complexity without meaningful UX gain at this token count.
 
 ---
