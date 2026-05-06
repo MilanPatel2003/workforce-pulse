@@ -3,7 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, L
 import { useStore } from '../../store/useStore'
 import { useFilteredData } from '../../hooks/useFilteredData'
 
-const fmtINR = (n) => n ? `₹${new Intl.NumberFormat('en-IN').format(Math.round(n * 2376))}` : '—'
+const fmtINR = (n) => n ? `₹${new Intl.NumberFormat('en-IN').format(Math.round(n))}` : '—'
 
 export default function EmployeeDrilldown() {
   const { metrics, filters } = useStore()
