@@ -1,0 +1,74 @@
+:root {
+  --bg: #080b12;
+  --surface: #0f1520;
+  --surface2: #161d2e;
+  --border: #1e2a40;
+  --accent: #4f8ef7;
+  --accent2: #7c3aed;
+  --green: #10d98c;
+  --amber: #f5a623;
+  --red: #f04060;
+  --text: #e8edf5;
+  --muted: #6b7fa3;
+  --font-mono: 'Space Mono', monospace;
+  --font-body: 'DM Sans', sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+.mono { font-family: var(--font-mono); }
+
+/* Mobile sidebar */
+@media (max-width: 640px) {
+  .sidebar {
+    position: fixed !important;
+    left: -220px;
+    top: 0;
+    bottom: 0;
+    z-index: 50;
+    transition: left 0.25s ease;
+    width: 200px !important;
+  }
+  .sidebar.open {
+    left: 0;
+  }
+  .mobile-overlay {
+    display: block !important;
+  }
+  .main-content {
+    padding: 12px !important;
+    gap: 12px !important;
+  }
+  .topbar {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 10px;
+  }
+  .topbar-actions {
+    width: 100%;
+    display: flex;
+    gap: 8px;
+  }
+  .chat-panel {
+    position: fixed !important;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    z-index: 50;
+    width: 100% !important;
+    max-width: 400px;
+  }
+}

@@ -1,0 +1,115 @@
+# Workforce Pulse — Methodology & Assumptions
+
+**Stack:** Node.js + Express (backend) · React 18 + Vite (frontend) · Recharts · Gemini 2.5 Flash · jsPDF + html2canvas
+**Data:** `activity_logs.csv` (539 raw rows) + `employees.json` (16 records, 3 schema variants)
+
+---
+
+## Files & Assumptions
+
+### activity_logs.csv
+- **Timezone:** All timestamps parsed to IST. Three formats handled: ISO with T, ISO without T, DD/MM/YYYY HH:MM. Unparseable timestamps → row dropped.
+- **Duration outliers:** Rows ≤ 0 dropped (includes negatives and zeros). Rows > 480 min capped at 480 and flagged. Rationale: 8 hours is the maximum plausible single-session duration.
+- **is_repetitive nulls:** 11 raw spellings normalized. Unrecognized values → `null` (excluded from repetitive calc, included in total hours). Conservative: does not inflate the automation opportunity.
+- **Unknown `employee_id` "?":** Dropped. Cannot be attributed to any employee.
+- **App/task normalization:** ~31 raw app values → 10 canonical names; ~42 raw task values → 14 canonical categories, all via lowercase lookup maps before any aggregation.
+
+### employees.json
+- **3 schema variants flattened:** Schema A (old caps fields), Schema B (new snake_case), Schema C (meta-nested; E009 and E010).
+- **Compensation → Annual INR:** `salary_LPA × 100,000` | `annual_ctc_inr` as-is | `hourly_rate_inr × 2,376` (9hr × 22 days × 12 months — standard Indian working calendar).
+- **working_hours null:** Assumed `09:00–18:00` where null. This is the modal value across employees who specified hours.
+- **E007 duplicate:** Two records found. Kept the higher-salary record (₹24,00,000 CTC, Senior Account Executive, tenure 28mo) on the assumption it reflects a role change. Both records logged in the ingestion audit.
+- **E013 ghost:** In activity logs, absent from employees.json. Activity retained; excluded from INR calculations (no salary). Shown in UI with `⚠ No meta` badge.
+- **E099 no-show:** In employees.json, zero activity rows. Included only in metadata audit.
+- **E010 terminated:** `terminated_on: 2025-10-22`. All activity retained as valid data. Surfaced as primary governance anomaly.
+
+---
+
+## Join Strategy
+
+1. Parse and flatten all 16 employee records to canonical schema.
+2. Resolve E007 conflict — keep higher CTC, log both in audit.
+3. Build `employeeMap` keyed by uppercase employee ID.
+4. Left-join each activity row to `employeeMap`.
+5. Unmatched rows (E013) → `metadata_missing: true`.
+6. Employees with no activity (E099) → logged in `no_activity_employees`.
+
+---
+
+## Headline Number Formulas
+
+**Recoverable hours/month:**
+```
+Σ(duration_minutes WHERE is_repetitive = true) × 0.70 / 60 / 4_weeks × 4.33
+```
+The **0.70 automation factor**: 70% of a repetitive task is typically automatable; 30% retained for exceptions, edge cases, and oversight. Consistent with RPA industry benchmarks for structured-data tasks (data entry, email triage, status updates).
+
+**Recoverable INR/month:**
+```
+Σ((duration_minutes / 60) × hourly_rate WHERE is_repetitive = true AND salary known) × 0.70 / 4 × 4.33
+hourly_rate = annual_ctc_inr / 2,376
+```
+Rows without salary data excluded and counted separately in audit. The formula normalizes across the 4-week dataset to a monthly figure using 4.33 (52 ÷ 12).
+
+---
+
+## Automation Priority Score
+
+```
+score = (
+  task_hours / total_all_hours     × 0.35   // volume
+  repetitive_rate                  × 0.30   // automation feasibility
+  employees_doing_task / total_emp × 0.20   // org concentration
+  task_cost / max_task_cost        × 0.15   // INR impact
+) × 100
+```
+
+**Weight rationale:** Volume (35%) is the biggest lever — more total time means more total savings. Repetitiveness (30%) is the feasibility signal — tasks already identified as repetitive are automation-ready with minimal discovery work. Concentration (20%) reflects rollout ease — a task done by 8 people is faster to automate organizationally than one done by 1 (shared tooling, shared training). Cost (15%) is last because volume and repetitiveness already correlate with cost; weighting it higher would double-count.
+
+---
+
+## Anomaly Detection
+
+1. **Per-employee repetitive share** computed. Employees with share > mean + 1.5σ flagged as outliers.
+2. **Terminated employee activity** (E010): governance risk — active system access post-termination.
+3. **Ghost employees** (E013): activity without identity — cannot calculate cost impact.
+4. **Long sessions** (> 300 min): flag for duration logging accuracy review.
+
+Primary anomaly surfaced in dashboard: E010 (terminated Oct 22) with activity records — highest severity.
+
+---
+
+## Cross-Filters
+
+Two working cross-filters:
+1. **Department filter** (sidebar pills) → filters HeadlineNumbers, TimeSinkBreakdown, EmployeeDrilldown
+2. **Task Category filter** (clicking AutomationRanking rows) → filters EmployeeDrilldown employee list
+
+Both use shared Zustand state. Every component reads from `useFilteredData()` hook which derives filtered rows from the store.
+
+---
+
+## What I Cut
+
+- **Database:** In-memory is sufficient and faster for 533 rows. Adds no latency.
+- **Authentication:** Single-tenant COO tool. Not in scope.
+- **Real-time refresh:** Dataset is static for this period.
+- **Dark/light toggle:** Committed to one polished dark theme rather than two mediocre ones.
+- **Streaming AI responses:** Gemini 2.5 Flash is fast enough; streaming would add complexity without meaningful UX gain at this token count.
+
+---
+
+## What I'd Build Next (2 more days)
+
+1. **Automation ROI calculator** — input monthly cost of an RPA tool → payback period in months, break-even visualization.
+2. **Weekly email digest** — cron job sends COO a 3-bullet summary of top anomalies every Monday morning.
+3. **Peer benchmarking** — compare department repetitive-task rates against industry averages (sourced via API).
+4. **AI-generated PDF narrative** — instead of a static export template, ask the AI assistant to write the 1-page summary on demand, grounded in current filter state.
+
+---
+
+## Deployment
+
+- **Backend:** Render.com (Node.js service) — set `GEMINI_API_KEY` env var
+- **Frontend:** Vercel — set `VITE_API_URL` to Render backend URL
+- Get Gemini API key (free): https://aistudio.google.com/app/apikey

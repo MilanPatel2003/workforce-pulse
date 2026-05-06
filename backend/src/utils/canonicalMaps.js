@@ -1,0 +1,30 @@
+export const APP_MAP = {
+  'gmail': 'Gmail', 'google mail': 'Gmail',
+  'outlook': 'Outlook', 'ms outlook': 'Outlook', 'microsoft outlook': 'Outlook',
+  'excel': 'Excel', 'ms excel': 'Excel', 'microsoft excel': 'Excel',
+  'slack': 'Slack',
+  'sap': 'SAP',
+  'sfdc': 'Salesforce', 'salesforce': 'Salesforce',
+  'chrome': 'Chrome', 'google chrome': 'Chrome', 'google chrome browser': 'Chrome',
+  'zoom': 'Zoom',
+  'powerpoint': 'PowerPoint', 'ms powerpoint': 'PowerPoint', 'microsoft powerpoint': 'PowerPoint',
+  'zoho crm': 'Zoho CRM', 'zoho': 'Zoho CRM',
+  'teams': 'Microsoft Teams', 'ms teams': 'Microsoft Teams', 'microsoft teams': 'Microsoft Teams',
+};
+
+export const TASK_MAP = {
+  'email triage': 'Email Triage',
+  'data-entry': 'Data Entry', 'data entry': 'Data Entry', 'dataentry': 'Data Entry',
+  'internal comms': 'Internal Comms', 'internal communication': 'Internal Comms',
+  'status updates': 'Status Updates', 'status update': 'Status Updates',
+  'reporting': 'Reporting',
+  'vendor mgmt': 'Vendor Management', 'vendor management': 'Vendor Management',
+  'cal mgmt': 'Calendar Management', 'calendar management': 'Calendar Management',
+  'invoice proc': 'Invoice Processing', 'invoice processing': 'Invoice Processing',
+  'meetings': 'Meetings', 'meeting': 'Meetings',
+  'crm updates': 'CRM Updates', 'crm update': 'CRM Updates',
+  'lead-entry': 'Lead Entry', 'lead entry': 'Lead Entry',
+  'research': 'Research',
+  'pipeline review': 'Pipeline Review',
+  'client communication': 'Client Communication', 'client comms': 'Client Communication',
+};
