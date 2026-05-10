@@ -31,7 +31,7 @@ export default function EmployeeDrilldown() {
         <span style={{ fontSize: 11, color: 'var(--muted)' }}>{employees.length} employee{employees.length !== 1 ? 's' : ''}</span>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 320px' : '1fr', gap: 16 }}>
+      <div className="drilldown-grid" style={{ display: 'grid', gridTemplateColumns: selected ? '1fr 320px' : '1fr', gap: 16 }}>
         {/* Table */}
         <div style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
