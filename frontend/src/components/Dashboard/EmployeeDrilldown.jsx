@@ -3,7 +3,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, L
 import { useStore } from '../../store/useStore'
 import { useFilteredData } from '../../hooks/useFilteredData'
 
-const fmtINR = (n) => n ? `₹${new Intl.NumberFormat('en-IN').format(Math.round(n * 2376))}` : '—'
+const fmtINR = (n) => n ? `₹${new Intl.NumberFormat('en-IN').format(Math.round(n))}` : '—'
 
 export default function EmployeeDrilldown() {
   const { metrics, filters } = useStore()
@@ -37,7 +37,7 @@ export default function EmployeeDrilldown() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                {['Name', 'Dept', 'Role', 'Hours', 'Rep%', 'Top Task', 'Status'].map(h => (
+                {['Name', 'Dept', 'Role', 'Total Hours', 'Rep Hours', 'Rep%', 'Top Task', 'Status'].map(h => (
                   <th key={h} style={{ padding: '6px 8px', textAlign: 'left', color: 'var(--muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -53,6 +53,7 @@ export default function EmployeeDrilldown() {
                   <td style={{ padding: '8px', color: 'var(--muted)' }}>{e.dept}</td>
                   <td style={{ padding: '8px', color: 'var(--muted)', fontSize: 11 }}>{e.role}</td>
                   <td style={{ padding: '8px', fontFamily: 'var(--font-mono)', color: 'var(--text)' }}>{e.total_hours.toFixed(1)}</td>
+                  <td style={{ padding: '8px', fontFamily: 'var(--font-mono)', color: 'var(--text)' }}>{e.rep_hours.toFixed(1)}</td>
                   <td style={{ padding: '8px' }}>
                     <span style={{ color: e.rep_pct > 60 ? '#f04060' : e.rep_pct > 40 ? '#f5a623' : '#10d98c', fontFamily: 'var(--font-mono)' }}>
                       {e.rep_pct.toFixed(0)}%
@@ -81,7 +82,7 @@ export default function EmployeeDrilldown() {
               <div>
                 <p style={{ fontWeight: 600, color: 'var(--text)', fontSize: 13 }}>{emp.name}</p>
                 <p style={{ color: 'var(--muted)', fontSize: 11 }}>{emp.role} · {emp.dept}</p>
-                {emp.annual_ctc && <p style={{ color: 'var(--muted)', fontSize: 11 }}>{fmtINR(emp.hourly_rate)}/hr</p>}
+                {emp.hourly_rate && <p style={{ color: 'var(--muted)', fontSize: 11 }}>{fmtINR(emp.hourly_rate)}/hr {emp.annual_ctc && `(${fmtINR(emp.annual_ctc)}/yr)`}</p>}
               </div>
               <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 16 }}>×</button>
             </div>
