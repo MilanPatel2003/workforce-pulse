@@ -26,7 +26,17 @@ export async function ingestCSV(filePath) {
           rows.push(row);
         }
       })
-      .on('end', () => resolve({ rows, audit }))
+      .on('end', () => {
+        // Assign relative week numbers from the earliest timestamp
+        if (rows.length > 0) {
+          const minTs = Math.min(...rows.map(r => r.timestamp.getTime()))
+          const MS_PER_WEEK = 7 * 24 * 60 * 60 * 1000
+          for (const row of rows) {
+            row.week = Math.floor((row.timestamp.getTime() - minTs) / MS_PER_WEEK) + 1
+          }
+        }
+        resolve({ rows, audit })
+      })
       .on('error', reject);
   });
 }

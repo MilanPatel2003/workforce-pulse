@@ -117,17 +117,37 @@ export function computeMetrics(rows, employeeMap, audit) {
     cost_per_month: +((d.cost * AUTOMATION_FACTOR) / WEEKS_IN_DATASET * AVG_WEEKS_PER_MONTH).toFixed(0),
   })).sort((a, b) => b.total_hours - a.total_hours);
 
-  // Weekly trend — top 5 tasks
+  // Weekly trend — dynamic week numbers from relative bucketing
+  const allWeeks = [...new Set(rows.map(r => r.week))].sort((a, b) => a - b);
   const top5Tasks = byTask.slice(0, 5).map((t) => t.name);
-  const weeklyData = { weeks: [1, 2, 3, 4], series: [] };
+  const weeklyData = { weeks: allWeeks, series: [] };
   for (const taskName of top5Tasks) {
-    const values = [1, 2, 3, 4].map((w) => {
+    const values = allWeeks.map((w) => {
       const mins = rows
         .filter((r) => r.task_category === taskName && r.week === w)
         .reduce((s, r) => s + r.duration_minutes, 0);
       return +(mins / 60).toFixed(2);
     });
     weeklyData.series.push({ task: taskName, values });
+  }
+
+  // Per-department weekly series (for dept-filtered trend)
+  const deptWeeklyMap = {};
+  for (const r of rows) {
+    const dept = r.department || r.employee?.department || 'Unknown';
+    if (!deptWeeklyMap[dept]) deptWeeklyMap[dept] = {};
+    const w = r.week;
+    if (!deptWeeklyMap[dept][w]) deptWeeklyMap[dept][w] = { total: 0, rep: 0 };
+    deptWeeklyMap[dept][w].total += r.duration_minutes;
+    if (r.is_repetitive === true) deptWeeklyMap[dept][w].rep += r.duration_minutes;
+  }
+  const deptWeeklySeries = {};
+  for (const [dept, weekMap] of Object.entries(deptWeeklyMap)) {
+    deptWeeklySeries[dept] = allWeeks.map(w => ({
+      week: w,
+      total_hours: +((weekMap[w]?.total || 0) / 60).toFixed(2),
+      rep_hours: +((weekMap[w]?.rep || 0) / 60).toFixed(2),
+    }));
   }
 
   // Per-employee
@@ -140,14 +160,28 @@ export function computeMetrics(rows, employeeMap, audit) {
     const emp = empR[0].employee;
     const totalMins = empR.reduce((s, r) => s + r.duration_minutes, 0);
     const repMins = empR.filter((r) => r.is_repetitive === true).reduce((s, r) => s + r.duration_minutes, 0);
-    const taskCounts = {};
-    for (const r of empR) taskCounts[r.task_category] = (taskCounts[r.task_category] || 0) + r.duration_minutes;
-    const topTasks = Object.entries(taskCounts)
+
+    // Top REPETITIVE tasks (fix: was total hours, now rep hours)
+    const repTaskCounts = {};
+    const totalTaskCounts = {};
+    for (const r of empR) {
+      totalTaskCounts[r.task_category] = (totalTaskCounts[r.task_category] || 0) + r.duration_minutes;
+      if (r.is_repetitive === true) {
+        repTaskCounts[r.task_category] = (repTaskCounts[r.task_category] || 0) + r.duration_minutes;
+      }
+    }
+    const topRepTasks = Object.entries(repTaskCounts)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, mins]) => ({ name, rep_hours: +(mins / 60).toFixed(2) }));
+
+    const topTasks = Object.entries(totalTaskCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5)
       .map(([name, mins]) => ({ name, hours: +(mins / 60).toFixed(2) }));
-    // weekly rep trend
-    const weeklyRep = [1, 2, 3, 4].map((w) => {
+
+    // Weekly trend using dynamic week numbers
+    const weeklyRep = allWeeks.map((w) => {
       const wr = empR.filter((r) => r.week === w);
       const wTotal = wr.reduce((s, r) => s + r.duration_minutes, 0);
       const wRep = wr.filter((r) => r.is_repetitive === true).reduce((s, r) => s + r.duration_minutes, 0);
@@ -162,6 +196,7 @@ export function computeMetrics(rows, employeeMap, audit) {
       rep_hours: +(repMins / 60).toFixed(2),
       rep_pct: +(totalMins > 0 ? (repMins / totalMins) * 100 : 0).toFixed(1),
       top_tasks: topTasks,
+      top_rep_tasks: topRepTasks,
       hourly_rate: emp?.hourly_rate_inr ? +emp.hourly_rate_inr.toFixed(2) : null,
       annual_ctc: emp?.annual_ctc_inr || null,
       status: emp?.status || 'active',
@@ -257,6 +292,8 @@ export function computeMetrics(rows, employeeMap, audit) {
     by_department: byDept,
     automation_ranking: byTask,
     weekly_trend: weeklyData,
+    dept_weekly_series: deptWeeklySeries,
+    all_weeks: allWeeks,
     per_employee: perEmployee,
     role_avg_rep_pct: roleAvgRepPct,
     anomalies,

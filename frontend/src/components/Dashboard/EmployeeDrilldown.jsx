@@ -21,20 +21,6 @@ export default function EmployeeDrilldown() {
     return emps
   }, [metrics, filters, filteredRows])
 
-  const filteredTopTaskByEmployee = useMemo(() => {
-    const taskTotals = {}
-    for (const row of filteredRows) {
-      if (!taskTotals[row.employee_id]) taskTotals[row.employee_id] = {}
-      taskTotals[row.employee_id][row.task_category] = (taskTotals[row.employee_id][row.task_category] || 0) + row.duration_minutes
-    }
-    return Object.fromEntries(
-      Object.entries(taskTotals).map(([id, tasks]) => {
-        const [topTask] = Object.entries(tasks).sort((a, b) => b[1] - a[1])
-        return [id, topTask ? topTask[0] : '—']
-      })
-    )
-  }, [filteredRows])
-
   const emp = selected ? employees.find(e => e.id === selected) : null
   const roleAvg = emp ? (metrics?.role_avg_rep_pct?.[emp.role] || 0) : 0
 
@@ -51,7 +37,7 @@ export default function EmployeeDrilldown() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
             <thead>
               <tr style={{ borderBottom: '1px solid var(--border)' }}>
-                {['Name', 'Dept', 'Role', 'Hours', 'Rep%', 'Top Task', 'Status'].map(h => (
+                {['Name', 'Dept', 'Role', 'Total Hours', 'Rep Hours', 'Rep%', 'Top Task', 'Status'].map(h => (
                   <th key={h} style={{ padding: '6px 8px', textAlign: 'left', color: 'var(--muted)', fontWeight: 500, whiteSpace: 'nowrap' }}>{h}</th>
                 ))}
               </tr>
@@ -67,14 +53,13 @@ export default function EmployeeDrilldown() {
                   <td style={{ padding: '8px', color: 'var(--muted)' }}>{e.dept}</td>
                   <td style={{ padding: '8px', color: 'var(--muted)', fontSize: 11 }}>{e.role}</td>
                   <td style={{ padding: '8px', fontFamily: 'var(--font-mono)', color: 'var(--text)' }}>{e.total_hours.toFixed(1)}</td>
+                  <td style={{ padding: '8px', fontFamily: 'var(--font-mono)', color: 'var(--text)' }}>{e.rep_hours.toFixed(1)}</td>
                   <td style={{ padding: '8px' }}>
                     <span style={{ color: e.rep_pct > 60 ? '#f04060' : e.rep_pct > 40 ? '#f5a623' : '#10d98c', fontFamily: 'var(--font-mono)' }}>
                       {e.rep_pct.toFixed(0)}%
                     </span>
                   </td>
-                  <td style={{ padding: '8px', color: 'var(--muted)', fontSize: 11 }}>
-                    {filteredTopTaskByEmployee[e.id] || e.top_tasks[0]?.name || '—'}
-                  </td>
+                  <td style={{ padding: '8px', color: 'var(--muted)', fontSize: 11 }}>{e.top_tasks[0]?.name || '—'}</td>
                   <td style={{ padding: '8px' }}>
                     <span style={{
                       fontSize: 10, padding: '2px 6px', borderRadius: 10,
@@ -97,7 +82,7 @@ export default function EmployeeDrilldown() {
               <div>
                 <p style={{ fontWeight: 600, color: 'var(--text)', fontSize: 13 }}>{emp.name}</p>
                 <p style={{ color: 'var(--muted)', fontSize: 11 }}>{emp.role} · {emp.dept}</p>
-                {emp.annual_ctc && <p style={{ color: 'var(--muted)', fontSize: 11 }}>{fmtINR(emp.hourly_rate)}/hr</p>}
+                {emp.hourly_rate && <p style={{ color: 'var(--muted)', fontSize: 11 }}>{fmtINR(emp.hourly_rate)}/hr {emp.annual_ctc && `(${fmtINR(emp.annual_ctc)}/yr)`}</p>}
               </div>
               <button onClick={() => setSelected(null)} style={{ background: 'none', border: 'none', color: 'var(--muted)', cursor: 'pointer', fontSize: 16 }}>×</button>
             </div>
@@ -114,15 +99,19 @@ export default function EmployeeDrilldown() {
               <p style={{ color: 'var(--muted)', fontSize: 10, marginTop: 2 }}>Role avg: {roleAvg.toFixed(0)}%</p>
             </div>
 
-            {/* Top tasks */}
-            <p style={{ color: 'var(--muted)', marginBottom: 6, fontSize: 11 }}>Top Tasks</p>
-            <ResponsiveContainer width="100%" height={100}>
-              <BarChart data={emp.top_tasks} layout="vertical" margin={{ left: 0, right: 10 }}>
-                <XAxis type="number" hide />
-                <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 10, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
-                <Bar dataKey="hours" fill="#4f8ef7" radius={[0, 3, 3, 0]} barSize={8} />
-              </BarChart>
-            </ResponsiveContainer>
+            {/* Top REPETITIVE tasks */}
+            <p style={{ color: 'var(--muted)', marginBottom: 6, fontSize: 11 }}>Top Repetitive Tasks</p>
+            {emp.top_rep_tasks?.length > 0 ? (
+              <ResponsiveContainer width="100%" height={100}>
+                <BarChart data={emp.top_rep_tasks} layout="vertical" margin={{ left: 0, right: 10 }}>
+                  <XAxis type="number" hide />
+                  <YAxis dataKey="name" type="category" width={100} tick={{ fontSize: 10, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
+                  <Bar dataKey="rep_hours" fill="#f04060" radius={[0, 3, 3, 0]} barSize={8} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p style={{ fontSize: 11, color: 'var(--muted)' }}>No repetitive tasks logged</p>
+            )}
 
             {/* Weekly trend */}
             <p style={{ color: 'var(--muted)', marginTop: 8, marginBottom: 6, fontSize: 11 }}>Weekly Activity</p>
@@ -137,11 +126,6 @@ export default function EmployeeDrilldown() {
           </div>
         )}
       </div>
-      {filters.taskCategory && (
-        <p style={{ marginTop: 12, fontSize: 11, color: 'var(--muted)' }}>
-          Showing employees with current filter activity. <strong>Top Task</strong> is computed from the filtered rows.
-        </p>
-      )}
     </div>
   )
 }
