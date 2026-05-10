@@ -44,15 +44,15 @@ export function normalizeRow(raw) {
   if (TRUTHY.has(boolRaw)) isRepetitive = true;
   else if (FALSY.has(boolRaw)) isRepetitive = false;
 
-  // week 1-4
-  const week = Math.ceil(ts.getDate() / 7);
+  // week placeholder — will be reassigned after min date is known
+  const week = null; // computed in ingest after all rows parsed
 
   return {
     row: {
       employee_id: empId,
       department: String(raw.department || '').trim(),
       timestamp: ts,
-      week,
+      week: null, // assigned after all rows parsed
       app_used: app,
       task_category: task,
       duration_minutes: duration,

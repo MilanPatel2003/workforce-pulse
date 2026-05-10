@@ -15,13 +15,9 @@ import ExportButton from './components/Export/ExportButton'
 const API_URL = import.meta.env.VITE_API_URL || ''
 
 export default function App() {
-  const { setData, setMetrics, setLoading, setError, loading, error, filters, clearFilters, theme, setTheme } = useStore()
+  const { setData, setMetrics, setLoading, setError, loading, error, filters, clearFilters } = useStore()
   const [chatOpen, setChatOpen] = useState(false)
   const [sidebarOpen, setSidebarOpen] = useState(false)
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('light', theme === 'light')
-  }, [theme])
 
   useEffect(() => {
     setLoading(true)
@@ -58,10 +54,11 @@ export default function App() {
     </div>
   )
 
+
   return (
     <div style={{ display: 'flex', height: '100vh', overflow: 'hidden', position: 'relative' }}>
       {/* Mobile overlay */}
-      {sidebarOpen && <div onClick={() => setSidebarOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 40, display: 'none' }} className="mobile-overlay" />}
+      {sidebarOpen && <div onClick={() => setSidebarOpen(false)} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', zIndex: 40 }} className="mobile-overlay" />}
 
       {/* Sidebar */}
       <aside className={`sidebar ${sidebarOpen ? 'open' : ''}`} style={{ width: 200, background: 'var(--surface)', borderRight: '1px solid var(--border)', padding: 20, overflowY: 'auto', flexShrink: 0 }}>
@@ -88,8 +85,10 @@ export default function App() {
           <div>
             <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
               <button onClick={() => setSidebarOpen(!sidebarOpen)}
-                style={{ display: 'none', background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)', borderRadius: 5, padding: '5px 8px', cursor: 'pointer', fontSize: 14 }}
-                className="mobile-menu-btn">☰</button>
+                className="mobile-menu-btn"
+                style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)', borderRadius: 5, padding: '5px 8px', cursor: 'pointer', fontSize: 14 }}>
+                ☰
+              </button>
               <h1 style={{ fontSize: 20, fontWeight: 700, color: 'var(--text)' }}>COO Dashboard</h1>
             </div>
             <p style={{ color: 'var(--muted)', fontSize: 12, marginTop: 2 }}>
@@ -101,10 +100,6 @@ export default function App() {
           </div>
           <div className="topbar-actions" style={{ display: 'flex', gap: 10 }}>
             <ExportButton />
-            <button onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              style={{ background: 'var(--surface)', border: '1px solid var(--border)', color: 'var(--text)', borderRadius: 6, padding: '7px 14px', cursor: 'pointer', fontSize: 12, fontWeight: 500 }}>
-              {theme === 'dark' ? '☀ Light' : '🌙 Dark'}
-            </button>
             <button onClick={() => setChatOpen(!chatOpen)}
               style={{ background: chatOpen ? '#4f8ef7' : 'var(--surface)', border: '1px solid var(--border)', color: chatOpen ? '#fff' : 'var(--text)', borderRadius: 6, padding: '7px 14px', cursor: 'pointer', fontSize: 12, fontWeight: 500 }}>
               {chatOpen ? '× Close AI' : '✦ AI Assistant'}

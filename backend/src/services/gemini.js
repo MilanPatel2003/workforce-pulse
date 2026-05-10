@@ -3,44 +3,61 @@ import axios from 'axios';
 let SYSTEM_PROMPT = '';
 
 export function buildSystemPrompt(metrics) {
-  SYSTEM_PROMPT = `You are Workforce Pulse AI — a sharp, data-grounded analytics assistant for a COO.
-You have access to normalized employee activity data from October 2025.
+  const empWeeklyLines = metrics.per_employee.map(e => {
+    const trend = e.weekly_trend.map(w => `Wk${w.week}: ${w.rep.toFixed(1)}h rep/${w.total.toFixed(1)}h total`).join(', ');
+    const first = e.weekly_trend[0]?.rep || 0;
+    const last = e.weekly_trend[e.weekly_trend.length - 1]?.rep || 0;
+    const wkChange = last - first;
+    return `  ${e.name} (${e.id}, ${e.dept}, ${e.role}): overall_rep%=${e.rep_pct}%, [${trend}], WoW_rep_change=${wkChange >= 0 ? '+' : ''}${wkChange.toFixed(1)}h`;
+  }).join('\n');
 
-DATASET FACTS (cite ONLY these, never invent numbers):
-- Valid activity rows: see audit
+  SYSTEM_PROMPT = `You are Workforce Pulse AI — a sharp, data-grounded analytics assistant for a COO.
+You have access to normalized employee activity data from October–November 2025.
+
+DATASET FACTS — cite ONLY these exact numbers, never invent:
+- Valid activity rows: ${metrics.audit?.rows_valid || 'N/A'}
 - Date range: ${metrics.dateRange.start} to ${metrics.dateRange.end}
 - Total hours logged: ${metrics.headline.total_hours.toFixed(1)} hrs
 - Repetitive hours: ${metrics.headline.repetitive_hours.toFixed(1)} hrs (${metrics.headline.repetitive_pct.toFixed(1)}%)
 - Recoverable hours/month: ${metrics.headline.recoverable_hours_per_month.toFixed(1)} hrs
 - Recoverable INR/month: ₹${Math.round(metrics.headline.recoverable_inr_per_month).toLocaleString('en-IN')}
 
-TOP TASK CATEGORIES (hours, rep%):
-${JSON.stringify(metrics.by_task_category.slice(0, 10), null, 2)}
-
-BY DEPARTMENT:
-${JSON.stringify(metrics.by_department, null, 2)}
-
-AUTOMATION RANKING (top 5):
-${JSON.stringify(metrics.automation_ranking.slice(0, 5), null, 2)}
-
-PER-EMPLOYEE SUMMARY:
-${JSON.stringify(metrics.per_employee.map(e => ({
-  id: e.id, name: e.name, dept: e.dept, role: e.role,
-  total_hours: e.total_hours, rep_pct: e.rep_pct,
-  top_tasks: e.top_tasks.slice(0, 3), status: e.status,
-  metadata_missing: e.metadata_missing,
+TOP TASK CATEGORIES (sorted by automation score):
+${JSON.stringify(metrics.by_task_category.slice(0, 12).map(t => ({
+  task: t.name, total_hours: t.total_hours, rep_hours: t.rep_hours,
+  rep_pct: t.rep_pct, employees: t.employee_count,
+  cost_per_month_inr: t.cost_per_month, automation_score: t.automation_score,
 })), null, 2)}
 
-ANOMALIES DETECTED:
+BY DEPARTMENT:
+${JSON.stringify(metrics.by_department.map(d => ({
+  dept: d.name, total_hours: d.total_hours, rep_hours: d.rep_hours,
+  rep_pct: d.rep_pct, employees: d.employee_count, cost_per_month_inr: d.cost_per_month,
+})), null, 2)}
+
+PER-EMPLOYEE WITH WEEKLY REPETITIVE TREND:
+${empWeeklyLines}
+
+PER-EMPLOYEE DETAILED:
+${JSON.stringify(metrics.per_employee.map(e => ({
+  id: e.id, name: e.name, dept: e.dept, role: e.role,
+  total_hours: e.total_hours, rep_hours: e.rep_hours, rep_pct: e.rep_pct,
+  top_rep_tasks: e.top_rep_tasks?.slice(0, 3),
+  hourly_rate_inr: e.hourly_rate,
+  annual_ctc_inr: e.annual_ctc,
+  status: e.status, metadata_missing: e.metadata_missing,
+})), null, 2)}
+
+ANOMALIES:
 ${JSON.stringify(metrics.anomalies, null, 2)}
 
 STRICT RULES:
-1. Only cite numbers present above. NEVER invent, estimate, or extrapolate figures not in this data.
-2. End EVERY response with: [Source: <specific metric/category>, ${metrics.dateRange.start}–${metrics.dateRange.end}]
-3. If you cannot answer from this data, say exactly: "I don't have that detail in the dataset."
-4. Multi-turn support: remember prior messages. Follow-ups like "break that down by department" must reference the previous answer.
-5. Be concise and COO-level. No fluff. Max 200 words unless asked for detail.
-6. When citing rupee amounts, format as ₹X,XX,XXX (Indian numbering system).`.trim();
+1. ONLY cite numbers explicitly present above. NEVER estimate or invent.
+2. If unanswerable from this data, say: "I don't have that detail in the dataset."
+3. End EVERY response with: [Source: <specific metric>, ${metrics.dateRange.start}–${metrics.dateRange.end}]
+4. Multi-turn: use conversation history. Follow-ups like "break that down by department" refer to your previous answer.
+5. Format rupees as ₹X,XX,XXX. Max 250 words unless asked for more detail.
+6. When listing employees, include their ID, department, and the exact cited figure.`.trim();
 }
 
 export async function chatWithGemini(messages) {
@@ -58,8 +75,8 @@ export async function chatWithGemini(messages) {
     system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
     contents,
     generationConfig: {
-      temperature: 0.2,
-      maxOutputTokens: 800,
+      temperature: 0.15,
+      maxOutputTokens: 1000,
     },
   });
 
