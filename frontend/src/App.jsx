@@ -123,7 +123,7 @@ export default function App() {
       </main>
 
       {/* AI Chat panel */}
-      <div className="chat-panel" style={{
+      <div className={`chat-panel ${chatOpen ? 'open' : ''}`} style={{
         width: chatOpen ? 400 : 0,
         overflow: 'hidden',
         transition: 'width 0.25s ease',

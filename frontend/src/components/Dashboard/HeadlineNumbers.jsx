@@ -17,7 +17,7 @@ export default function HeadlineNumbers() {
   const isFiltered = filters.department || filters.taskCategory
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+    <div className="headline-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
       {/* Hours card */}
       <div style={cardStyle('#10d98c')}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
