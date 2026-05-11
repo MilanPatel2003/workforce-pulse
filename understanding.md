@@ -1,8 +1,5 @@
 # Workforce Pulse — Complete Explanation Guide
 
-> Written for someone who wants to understand **everything** that happens in this project:
-> what the data means, where every number comes from, how the AI works, and how to trace
-> any dashboard number back to its source rows.
 
 ---
 
